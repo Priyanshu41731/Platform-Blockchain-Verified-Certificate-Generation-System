@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Issuer Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f0f2f5; }
+        .sidebar {
+            background: #1a1a2e;
+            min-height: 100vh;
+            padding: 20px 0;
+            position: fixed;
+            width: 250px;
+        }
+        .sidebar-brand {
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 700;
+            padding: 10px 20px 30px;
+            display: block;
+        }
+        .sidebar a {
+            color: #adb5bd;
+            display: block;
+            padding: 12px 20px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border-left: 4px solid #4cc9f0;
+        }
+        .main-content {
+            margin-left: 250px;
+            padding: 30px;
+        }
+        .stat-card {
+            border-radius: 15px;
+            padding: 25px;
+            color: white;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <span class="sidebar-brand">🎓 CertifyMe</span>
+    <a th:href="@{/issuer/dashboard}" class="active">📊 Dashboard</a>
+    <a th:href="@{/issuer/issue}">📜 Issue Certificate</a>
+    <a th:href="@{/issuer/bulk}">📂 Bulk Upload</a>
+    <a th:href="@{/logout}">🚪 Logout</a>
+</div>
+
+<div class="main-content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold mb-0">Issuer Dashboard</h4>
+        <span class="text-muted" th:text="${issuer.organizationName}"></span>
+    </div>
+
+    <!-- Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card" style="background: linear-gradient(135deg, #4cc9f0, #4361ee);">
+                <h6 class="mb-1">Total Issued</h6>
+                <h2 class="fw-bold" th:text="${certificates.size()}">0</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card" style="background: linear-gradient(135deg, #06d6a0, #118ab2);">
+                <h6 class="mb-1">Active</h6>
+                <h2 class="fw-bold" th:text="${activeCount}">0</h2>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card" style="background: linear-gradient(135deg, #f72585, #b5179e);">
+                <h6 class="mb-1">Revoked</h6>
+                <h2 class="fw-bold" th:text="${revokedCount}">0</h2>
+            </div>
+        </div>
+    </div>
+
+    <!-- Certificates Table -->
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-header bg-white border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold">Issued Certificates</h5>
+            <a th:href="@{/issuer/issue}" class="btn btn-dark btn-sm rounded-pill px-3">+ Issue New</a>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                <tr>
+                    <th>#</th>
+                    <th>Certificate ID</th>
+                    <th>Recipient</th>
+                    <th>Course</th>
+                    <th>Enrollment No</th>
+                    <th>Year</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="cert, i : ${certificates}">
+                    <td th:text="${i.count}"></td>
+                    <td><small th:text="${cert.certificateId}"></small></td>
+                    <td th:text="${cert.recipientName}"></td>
+                    <td th:text="${cert.courseTitle}"></td>
+                    <td th:text="${cert.enrollmentNo}"></td>
+                    <td th:text="${cert.passingYear}"></td>
+                    <td>
+                            <span th:if="${cert.status.name() == 'ACTIVE'}"
+                                  class="badge bg-success">ACTIVE</span>
+                        <span th:if="${cert.status.name() == 'REVOKED'}"
+                              class="badge bg-danger">REVOKED</span>
+                    </td>
+                    <td>
+                        <form th:if="${cert.status.name() == 'ACTIVE'}"
+                              th:action="@{/issuer/revoke/{id}(id=${cert.id})}"
+                              method="post">
+                            <button class="btn btn-sm btn-outline-danger">Revoke</button>
+                        </form>
+                        <span th:if="${cert.status.name() == 'REVOKED'}"
+                              class="text-muted small">Revoked</span>
+                    </td>
+                </tr>
+                <tr th:if="${certificates.empty}">
+                    <td colspan="8" class="text-center text-muted py-4">No certificates issued yet</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
